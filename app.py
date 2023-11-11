@@ -56,9 +56,8 @@ def register():
 
 @app.get("/user-by-token")
 def user_by_token():
-    data = request.get_json()
-    user_id = data["user_id"]
-    token_str = data["token"]
+    user_id = request.args.get("user_id")
+    token_str = request.args.get("token")
 
     token = Token.get_by_str(user_id, token_str)
 
