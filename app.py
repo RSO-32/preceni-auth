@@ -75,18 +75,6 @@ def user_by_token():
     return user.toJSON()
 
 
-@app.route("/database/create")
-def create_tables():
-    Database.create_tables()
-    return "Tables created"
-
-
-@app.route("/database/drop")
-def drop_tables():
-    Database.drop_tables()
-    return "Tables dropped"
-
-
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
