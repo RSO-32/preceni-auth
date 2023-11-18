@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from os.path import join, dirname
@@ -8,6 +8,7 @@ from database import Database
 from os import environ
 from models.user import User
 from models.token import Token
+from health import Health
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -72,6 +73,21 @@ def user_by_token():
     user = User.get_by_id(user_id)
 
     return user.toJSON()
+
+
+@app.route("/health/live")
+def health_live():
+    status, checks = Health.check_health()
+    code = 200 if status == "UP" else 503
+
+    return jsonify({"status": status, "checks": checks}), code
+
+
+@app.route("/health/test/toggle", methods=["PUT"])
+def health_test():
+    Health.force_fail = not Health.force_fail
+
+    return Health.checkTest()
 
 
 if __name__ == "__main__":
