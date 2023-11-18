@@ -9,6 +9,7 @@ from os import environ
 from models.user import User
 from models.token import Token
 from health import Health
+from metrics import Metrics
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -75,6 +76,17 @@ def user_by_token():
     return user.toJSON()
 
 
+@app.route("/metrics")
+def metrics():
+    metrics = Metrics.get_metrics()
+
+    response = ""
+    for metric in metrics:
+        response += f"{metric.name} {metric.value}\n"
+
+    return response
+
+
 @app.route("/health/live")
 def health_live():
     status, checks = Health.check_health()
@@ -91,6 +103,7 @@ def health_test():
 
 
 if __name__ == "__main__":
+    Metrics.init()
     app.run(
         host="0.0.0.0",
         port=environ.get("AUTH_SERVICE_PORT"),
