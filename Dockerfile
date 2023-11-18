@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install required packages
-RUN sudo apk add gcc python3-dev
+RUN apk add gcc python3-dev
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
