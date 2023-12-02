@@ -23,17 +23,17 @@ class User:
         cursor = Config.conn.cursor()
         query = "SELECT id, first_name, last_name, email, password_hash from users where id = %s"
         cursor.execute(query, (id,))
-        product_result = cursor.fetchone()
+        results = cursor.fetchone()
 
-        if product_result is None:
+        if results is None:
             return None
 
         return User(
-            product_result[0],
-            product_result[1],
-            product_result[2],
-            product_result[3],
-            product_result[4],
+            results[0],
+            results[1],
+            results[2],
+            results[3],
+            results[4],
         )
 
     @staticmethod
@@ -41,17 +41,17 @@ class User:
         cursor = Config.conn.cursor()
         query = "SELECT id, first_name, last_name, email, password_hash from users where email = %s"
         cursor.execute(query, (email,))
-        product_result = cursor.fetchone()
+        results = cursor.fetchone()
 
-        if product_result is None:
+        if results is None:
             return None
 
         return User(
-            product_result[0],
-            product_result[1],
-            product_result[2],
-            product_result[3],
-            product_result[4],
+            results[0],
+            results[1],
+            results[2],
+            results[3],
+            results[4],
         )
 
     @staticmethod
