@@ -18,7 +18,7 @@ CORS(app)  # Enable CORS for all routes
 graylog_handler = graypy.GELFUDPHandler("logs.meteo.pileus.si", 12201)
 environment = "dev" if environ.get("AUTH_SERVICE_DEBUG") else "prod"
 graylog_handler.setFormatter(
-    logging.Formatter(f"preceni-auth {environment} %(asctime)s %(levelname)s %(name)s %(message)s [{uuid4()}]")
+    logging.Formatter(f"preceni-auth {environment} %(asctime)s %(levelname)s %(name)s %(message)s")
 )
 app.logger.addHandler(graylog_handler)
 app.logger.setLevel(logging.INFO)
@@ -32,7 +32,8 @@ app.logger.info("Connected to database")
 
 @app.post("/login")
 def login():
-    app.logger.info("START: POST /login")
+    uuid=uuid4()
+    app.logger.info(f"START: POST /login [{uuid}]")
     data = request.get_json()
     email = data["email"]
     password = data["password"]
@@ -46,14 +47,15 @@ def login():
     token = user.create_token()
     user.token = token
 
-    app.logger.info("END: POST /login")
+    app.logger.info(f"END: POST /login [{uuid}]")
 
     return user.toJSON()
 
 
 @app.post("/register")
 def register():
-    app.logger.info("START: POST /register")
+    uuid=uuid4()
+    app.logger.info(f"START: POST /register [{uuid}]")
     data = request.get_json()
     first_name = data["first_name"]
     last_name = data["last_name"]
@@ -65,14 +67,15 @@ def register():
     if user is None:
         return "User already exists", 409
 
-    app.logger.info("END: POST /register")
+    app.logger.info(f"END: POST /register [{uuid}]")
 
     return user.toJSON()
 
 
 @app.get("/user-by-token")
 def user_by_token():
-    app.logger.info("START: GET /user-by-token")
+    uuid=uuid4()
+    app.logger.info(f"START: GET /user-by-token [{uuid}]")
     user_id = request.args.get("user_id")
     token_str = request.args.get("token")
 
@@ -88,7 +91,7 @@ def user_by_token():
 
     user = User.get_by_id(user_id)
 
-    app.logger.info("END: GET /user-by-token")
+    app.logger.info(f"END: GET /user-by-token [{uuid}]")
 
     return user.toJSON()
 
