@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from os.path import join, dirname
@@ -10,8 +10,11 @@ from health import Health
 from metrics import Metrics
 import logging, graypy
 from uuid import uuid4
+from pydantic import BaseModel
+from flask_openapi3 import OpenAPI, Info, Tag
 
-app = Flask(__name__)
+info = Info(title="Preceni auth", version="1.0.0", description="Preceni auth API")
+app = OpenAPI(__name__, info=info)
 CORS(app)  # Enable CORS for all routes
 
 # Logging
@@ -29,10 +32,20 @@ load_dotenv(dotenv_path)
 Database.connect()
 app.logger.info("Connected to database")
 
+auth_tag = Tag(name="auth", description="Authentication")
+health_tag = Tag(name="health", description="Health and metrics")
 
-@app.post("/login")
+
+class UserResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+
+
+@app.post("/login", tags=[auth_tag], summary="Login", responses={200: UserResponse})
 def login():
-    uuid=uuid4()
+    uuid = uuid4()
     app.logger.info(f"START: POST /login [{uuid}]")
     data = request.get_json()
     email = data["email"]
@@ -52,9 +65,9 @@ def login():
     return user.toJSON()
 
 
-@app.post("/register")
+@app.post("/register", tags=[auth_tag], summary="Register new user", responses={200: UserResponse})
 def register():
-    uuid=uuid4()
+    uuid = uuid4()
     app.logger.info(f"START: POST /register [{uuid}]")
     data = request.get_json()
     first_name = data["first_name"]
@@ -72,9 +85,9 @@ def register():
     return user.toJSON()
 
 
-@app.get("/user-by-token")
+@app.get("/user-by-token", tags=[auth_tag], summary="Get user by token", responses={200: UserResponse})
 def user_by_token():
-    uuid=uuid4()
+    uuid = uuid4()
     app.logger.info(f"START: GET /user-by-token [{uuid}]")
     user_id = request.args.get("user_id")
     token_str = request.args.get("token")
@@ -96,7 +109,7 @@ def user_by_token():
     return user.toJSON()
 
 
-@app.route("/metrics")
+@app.get("/metrics", tags=[health_tag], summary="Get metrics")
 def metrics():
     app.logger.info("GET: Metrics")
     metrics = Metrics.get_metrics()
@@ -108,7 +121,7 @@ def metrics():
     return response
 
 
-@app.route("/health/live")
+@app.get("/health/live", tags=[health_tag], summary="Health live check")
 def health_live():
     app.logger.info("GET: Health live check")
     status, checks = Health.check_health()
@@ -117,7 +130,7 @@ def health_live():
     return jsonify({"status": status, "checks": checks}), code
 
 
-@app.route("/health/test/toggle", methods=["PUT"])
+@app.put("/health/test/toggle", tags=[health_tag], summary="Health test toggle")
 def health_test():
     app.logger.info("PUT: Health test toggle")
     Health.force_fail = not Health.force_fail
