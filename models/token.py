@@ -1,13 +1,10 @@
 from config import Config
-import logging
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import random
 import string
 import pytz
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @dataclass
@@ -20,9 +17,7 @@ class Token:
     @staticmethod
     def get_by_id(id):
         cursor = Config.conn.cursor()
-        query = (
-            "SELECT id, token, expires_at, created_at from user_tokens where id = %s"
-        )
+        query = "SELECT id, token, expires_at, created_at from user_tokens where id = %s"
 
         cursor.execute(query, (id,))
         token_result = cursor.fetchone()
@@ -57,13 +52,12 @@ class Token:
 
     @staticmethod
     def create(user_id):
-        logging.info(f"Creating token for user {user_id}")
+        app.logger.info(f"Creating token for user {user_id}")
 
         token_length = 64
 
         token = "".join(
-            random.SystemRandom().choice(string.ascii_uppercase + string.digits)
-            for _ in range(token_length)
+            random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(token_length)
         )
 
         expires_at = datetime.now() + timedelta(days=30)

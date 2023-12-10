@@ -1,12 +1,10 @@
 from config import Config
-import logging
-import sys
 from dataclasses import dataclass
 import argon2
 from models.token import Token
+from flask import current_app as app
 
 ph = argon2.PasswordHasher()
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @dataclass
@@ -56,7 +54,7 @@ class User:
 
     @staticmethod
     def create(first_name, last_name, email, password):
-        logging.info(f"Creating user {first_name} { last_name} [{email}]")
+        app.logger.info(f"Creating user {first_name} { last_name} [{email}]")
 
         password_hash = ph.hash(password)
 
@@ -66,7 +64,7 @@ class User:
         try:
             cursor.execute(query, (first_name, last_name, email, password_hash))
         except Exception as e:
-            logging.error(e)
+            app.logger.error(e)
             return None
 
         user_id = cursor.fetchone()[0]
@@ -76,7 +74,7 @@ class User:
         return User.get_by_id(user_id)
 
     def update_user_password(self, password_hash):
-        logging.info(f"Updating password for user {self.id}")
+        app.logger.info(f"Updating password for user {self.id}")
 
         cursor = Config.conn.cursor()
         query = "UPDATE users SET password_hash = %s WHERE id = %s"
@@ -87,7 +85,7 @@ class User:
         return User.get_by_id(self.id)
 
     def verify_password(self, password) -> bool:
-        logging.info(f"Verifying password for user {self.id}")
+        app.logger.info(f"Verifying password for user {self.id}")
 
         cursor = Config.conn.cursor()
         query = "SELECT password_hash from users where id = %s"

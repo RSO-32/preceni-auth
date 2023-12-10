@@ -2,28 +2,37 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from os.path import join, dirname
-import logging
-import sys
 from database import Database
 from os import environ
 from models.user import User
 from models.token import Token
 from health import Health
 from metrics import Metrics
+import logging, graypy
+from uuid import uuid4
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# Logging
+graylog_handler = graypy.GELFUDPHandler("logs.meteo.pileus.si", 12201)
+environment = "dev" if environ.get("AUTH_SERVICE_DEBUG") else "prod"
+graylog_handler.setFormatter(
+    logging.Formatter(f"preceni-auth {environment} %(asctime)s %(levelname)s %(name)s %(message)s [{uuid4()}]")
+)
+app.logger.addHandler(graylog_handler)
+app.logger.setLevel(logging.INFO)
 
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
 Database.connect()
+app.logger.info("Connected to database")
 
 
 @app.post("/login")
 def login():
+    app.logger.info("START: POST /login")
     data = request.get_json()
     email = data["email"]
     password = data["password"]
@@ -37,11 +46,14 @@ def login():
     token = user.create_token()
     user.token = token
 
+    app.logger.info("END: POST /login")
+
     return user.toJSON()
 
 
 @app.post("/register")
 def register():
+    app.logger.info("START: POST /register")
     data = request.get_json()
     first_name = data["first_name"]
     last_name = data["last_name"]
@@ -53,11 +65,14 @@ def register():
     if user is None:
         return "User already exists", 409
 
+    app.logger.info("END: POST /register")
+
     return user.toJSON()
 
 
 @app.get("/user-by-token")
 def user_by_token():
+    app.logger.info("START: GET /user-by-token")
     user_id = request.args.get("user_id")
     token_str = request.args.get("token")
 
@@ -73,11 +88,14 @@ def user_by_token():
 
     user = User.get_by_id(user_id)
 
+    app.logger.info("END: GET /user-by-token")
+
     return user.toJSON()
 
 
 @app.route("/metrics")
 def metrics():
+    app.logger.info("GET: Metrics")
     metrics = Metrics.get_metrics()
 
     response = ""
@@ -89,6 +107,7 @@ def metrics():
 
 @app.route("/health/live")
 def health_live():
+    app.logger.info("GET: Health live check")
     status, checks = Health.check_health()
     code = 200 if status == "UP" else 503
 
@@ -97,6 +116,7 @@ def health_live():
 
 @app.route("/health/test/toggle", methods=["PUT"])
 def health_test():
+    app.logger.info("PUT: Health test toggle")
     Health.force_fail = not Health.force_fail
 
     return Health.checkTest()
