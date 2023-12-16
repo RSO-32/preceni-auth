@@ -65,7 +65,7 @@ def login():
     return user.toJSON()
 
 
-@app.post("/register", tags=[auth_tag], summary="Register new user", responses={200: UserResponse})
+@app.post("/auth/register", tags=[auth_tag], summary="Register new user", responses={200: UserResponse})
 def register():
     uuid = uuid4()
     app.logger.info(f"START: POST /register [{uuid}]")
@@ -85,7 +85,7 @@ def register():
     return user.toJSON()
 
 
-@app.get("/user-by-token", tags=[auth_tag], summary="Get user by token", responses={200: UserResponse})
+@app.get("/auth/user-by-token", tags=[auth_tag], summary="Get user by token", responses={200: UserResponse})
 def user_by_token():
     uuid = uuid4()
     app.logger.info(f"START: GET /user-by-token [{uuid}]")
@@ -109,7 +109,7 @@ def user_by_token():
     return user.toJSON()
 
 
-@app.get("/metrics", tags=[health_tag], summary="Get metrics")
+@app.get("/auth/metrics", tags=[health_tag], summary="Get metrics")
 def metrics():
     app.logger.info("GET: Metrics")
     metrics = Metrics.get_metrics()
@@ -121,7 +121,7 @@ def metrics():
     return response
 
 
-@app.get("/health/live", tags=[health_tag], summary="Health live check")
+@app.get("/auth/health/live", tags=[health_tag], summary="Health live check")
 def health_live():
     app.logger.info("GET: Health live check")
     status, checks = Health.check_health()
@@ -130,7 +130,7 @@ def health_live():
     return jsonify({"status": status, "checks": checks}), code
 
 
-@app.put("/health/test/toggle", tags=[health_tag], summary="Health test toggle")
+@app.put("/auth/health/test/toggle", tags=[health_tag], summary="Health test toggle")
 def health_test():
     app.logger.info("PUT: Health test toggle")
     Health.force_fail = not Health.force_fail
