@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import random
 import string
 import pytz
-
+from flask import current_app as app
 
 @dataclass
 class Token:

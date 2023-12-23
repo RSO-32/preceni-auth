@@ -43,7 +43,7 @@ class UserResponse(BaseModel):
     email: str
 
 
-@app.post("/login", tags=[auth_tag], summary="Login", responses={200: UserResponse})
+@app.post("/auth/login", tags=[auth_tag], summary="Login", responses={200: UserResponse})
 def login():
     uuid = uuid4()
     app.logger.info(f"START: POST /login [{uuid}]")
@@ -95,15 +95,19 @@ def user_by_token():
     token = Token.get_by_str(user_id, token_str)
 
     if token is None:
+        app.logger.info(f"Invalid token [{uuid}]")
+        app.logger.info(f"END: GET /user-by-token [{uuid}]")
         return "Invalid token", 401
 
     is_valid = token.is_valid()
 
     if not is_valid:
-        return "Invalid token", 401
+        app.logger.info(f"Expired token [{uuid}]")
+        return "Expired token", 401
 
     user = User.get_by_id(user_id)
 
+    app.logger.info(f"Valid token [{uuid}]")
     app.logger.info(f"END: GET /user-by-token [{uuid}]")
 
     return user.toJSON()
