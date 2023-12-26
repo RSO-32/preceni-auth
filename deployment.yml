@@ -13,7 +13,7 @@ spec:
         app: preceni-auth
     spec:
       containers:
-        - image: vidvidex/preceni-auth:2023-11-19-18-20-14
+        - image: vidvidex/preceni-auth:2023-12-24-17-11-32
           name: preceni-auth
           env:
           - name: DB_NAME
@@ -57,21 +57,25 @@ spec:
               secretKeyRef:
                 name: auth-debug
                 key: auth-service-debug
+
+          - name: PYTHONUNBUFFERED
+            value: "TRUE"
+
           ports:
             - containerPort: 5001
-              name: server
+              name: preceni-auth
 
           livenessProbe:
             httpGet:
-              path: /health/live
-              port: server
+              path: /auth/health/live
+              port: preceni-auth
             failureThreshold: 2
             periodSeconds: 10
 
           readinessProbe:
             httpGet:
-              path: /health/live
-              port: server
+              path: /auth/health/live
+              port: preceni-auth
             failureThreshold: 2
             initialDelaySeconds: 20
             periodSeconds: 30
@@ -85,7 +89,7 @@ spec:
   type: LoadBalancer
   ports:
     - port: 5001
+      targetPort: 5001
       protocol: TCP
-      targetPort: server
   selector:
     app: preceni-auth
