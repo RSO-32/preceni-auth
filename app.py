@@ -87,7 +87,11 @@ def register():
 
 @app.get("/auth/user-by-token", tags=[auth_tag], summary="Get user by token", responses={200: UserResponse})
 def user_by_token():
-    uuid = uuid4()
+    
+    if 'X-Request-ID in request.headers':
+        uuid = request.headers['X-Request-ID']
+    else:
+        uuid = uuid4()
     app.logger.info(f"START: GET /user-by-token [{uuid}]")
     user_id = request.args.get("user_id")
     token_str = request.args.get("token")
